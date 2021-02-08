@@ -36,9 +36,6 @@ def displayEntry(request, title):
     else:
         return render(request, "encyclopedia/error.html")
 
-def error(request):
-    return render(request, "encyclopedia/error.html")
-
 def edit(request, title):
     if request.method == 'GET':
         entryToEdit = util.get_entry(title)
@@ -79,4 +76,6 @@ def random_entry(request):
     title = entry_list[rand_num]
     return displayEntry(request, title)
 
+def error(request):
+    return render(request, "encyclopedia/error.html")
 
