@@ -41,7 +41,14 @@ def error(request):
 
 def edit(request, title):
     if request.method == 'GET':
-        return entry(request, title)
+        entryEdit = util.get_entry(title)
+
+        context = {
+            'edit': editEntry(initial={'textarea': entryEdit}),
+            'title': title
+        }
+
+        return render(request, "encyclopedia/edit.html", context)
     else:
         form = editEntry(request.POST)
         if form.is_valid():
