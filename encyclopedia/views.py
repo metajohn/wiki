@@ -14,7 +14,7 @@ class newEntry(forms.Form):
     f_entry_title = forms.CharField(label= "Title")
     f_entry_text = forms.CharField(widget=forms.Textarea(), label = "Content")
 
-class editEntry(forms.Form):
+class editForm(forms.Form):
     textarea = forms.CharField(widget=forms.Textarea(), label='Edited')
 
 def index(request):
@@ -22,7 +22,7 @@ def index(request):
         "entries": util.list_entries()
     })
 
-def entry(request, title):
+def displayEntry(request, title):
     page = util.get_entry(title)
     if page is not None:
         page_converted = md.convert(page)
@@ -41,20 +41,20 @@ def error(request):
 
 def edit(request, title):
     if request.method == 'GET':
-        entryEdit = util.get_entry(title)
+        entryToEdit = util.get_entry(title)
 
         context = {
-            'edit': editEntry(initial={'textarea': entryEdit}),
+            'edit': editForm(initial={'textarea': entryToEdit}),
             'title': title
         }
 
         return render(request, "encyclopedia/edit.html", context)
     else:
-        form = editEntry(request.POST)
+        form = editForm(request.POST)
         if form.is_valid():
             textarea = form.cleaned_data["textarea"]
             util.save_entry(title, textarea)
-            return entry(request, title)
+            return displayEntry(request, title)
 
 def new(request):
     if request.method == 'POST':
@@ -67,7 +67,7 @@ def new(request):
                 return error(request)
             else:
                 util.save_entry(title, textarea)
-                return entry(request, title)
+                return displayEntry(request, title)
         else:
             return error(request)
     else:
@@ -77,6 +77,6 @@ def random_entry(request):
     entry_list = util.list_entries()
     rand_num = random.randint(0, len(entry_list) - 1)
     title = entry_list[rand_num]
-    return entry(request, title)
+    return displayEntry(request, title)
 
 
