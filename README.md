@@ -12,7 +12,7 @@ Search:
 
 New Page: X
 
-Edit Page:
+Edit Page: X
 
 Random Page: X
 
