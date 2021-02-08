@@ -15,7 +15,12 @@ class newEntry(forms.Form):
     f_entry_text = forms.CharField(widget=forms.Textarea(), label = "Content")
 
 class editForm(forms.Form):
-    textarea = forms.CharField(widget=forms.Textarea(), label='Edited')
+    f_edit = forms.CharField(widget=forms.Textarea(), label='Edited')
+
+"""
+class searchForm(forms.form):
+    f_search = forms.CharField(widget=forms.TextInput(attrs={'class' }))
+"""
 
 def index(request):
     return render(request, "encyclopedia/index.html", {
@@ -41,7 +46,7 @@ def edit(request, title):
         entryToEdit = util.get_entry(title)
 
         context = {
-            'edit': editForm(initial={'textarea': entryToEdit}),
+            'edit': editForm(initial={'f_edit': entryToEdit}),
             'title': title
         }
 
@@ -49,8 +54,8 @@ def edit(request, title):
     else:
         form = editForm(request.POST)
         if form.is_valid():
-            textarea = form.cleaned_data["textarea"]
-            util.save_entry(title, textarea)
+            editedText = form.cleaned_data["f_edit"]
+            util.save_entry(title, editedText)
             return displayEntry(request, title)
 
 def new(request):
