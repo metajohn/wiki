@@ -11,20 +11,27 @@ md = Markdown()
 
 
 class newEntry(forms.Form):
+    #f_entry_etc is referenced in views ONLY
     f_entry_title = forms.CharField(label= "Title")
     f_entry_text = forms.CharField(widget=forms.Textarea(), label = "Content")
 
 class editForm(forms.Form):
-    f_edit = forms.CharField(widget=forms.Textarea(), label='Edited')
+    #f_edit is referenced in views ONLY
+    f_edit = forms.CharField(widget=forms.Textarea(), label="Edited")
 
-"""
-class searchForm(forms.form):
-    f_search = forms.CharField(widget=forms.TextInput(attrs={'class' }))
-"""
+#search form must be referenced in every view for it to appear in the side bar, as without a reference it does not exist within layout.html
+class searchForm(forms.Form):
+    #f_search is referenced in views ONLY
+    f_search = forms.CharField(label="Search", required=False,
+    widget= forms.TextInput
+    (attrs={'placeholder': 'Search Encyclopedia'}))
 
 def index(request):
     return render(request, "encyclopedia/index.html", {
-        "entries": util.list_entries()
+        #'entries' is the variable referenced in index.html
+        "entries": util.list_entries(),
+        #'form' is the variable referenced in layout.html
+        'searchForm': searchForm()
     })
 
 def displayEntry(request, title):
@@ -34,7 +41,8 @@ def displayEntry(request, title):
 
         context = {
             'title': title.capitalize,
-            'content': page_converted,            
+            'content': page_converted,
+            'searchForm': searchForm()            
         }
 
         return render(request, "encyclopedia/entry.html", context)
@@ -42,21 +50,28 @@ def displayEntry(request, title):
         return render(request, "encyclopedia/error.html")
 
 def edit(request, title):
+    #creates an editable form, when first clicked the method is always GET because the method of the form is GET
     if request.method == 'GET':
+        #this creates the entry to edit as a variable to be passed to the edit Context
         entryToEdit = util.get_entry(title)
 
         context = {
+            #context edit recieves the entry to edit and applies it to the form class editForm
+            #edit and title are then passed to the edit.html
             'edit': editForm(initial={'f_edit': entryToEdit}),
             'title': title
         }
 
         return render(request, "encyclopedia/edit.html", context)
     else:
+        #when the form is POSTED (submit clicked) it is tested and if success SAVED
         form = editForm(request.POST)
         if form.is_valid():
             editedText = form.cleaned_data["f_edit"]
             util.save_entry(title, editedText)
             return displayEntry(request, title)
+        else:
+            return error(request)
 
 def new(request):
     if request.method == 'POST':
@@ -73,7 +88,9 @@ def new(request):
         else:
             return error(request)
     else:
-        return render(request, "encyclopedia/new.html")
+        return render(request, "encyclopedia/new.html", {
+            'searchForm': searchForm()
+        })
 
 def random_entry(request):
     entry_list = util.list_entries()
@@ -82,5 +99,36 @@ def random_entry(request):
     return displayEntry(request, title)
 
 def error(request):
-    return render(request, "encyclopedia/error.html")
+    return render(request, "encyclopedia/error.html",{
+        'searchForm': searchForm()
+    })
 
+def search(request):
+    if request.method == "GET":
+        form = searchForm(request.GET)
+        errorM = ''
+
+        if form.is_valid():
+            searchquery = form.cleaned_data["f_search"].lower()
+            all_entries = util.list_entries()
+
+            files=[filename for filename in all_entries if searchquery in filename.lower()]
+
+            #no matches
+            if len(files) == 0:
+                errorM = (f'No results found for search \"{searchquery}\"')
+                return render(request, "encyclopedia/search_results.html", {
+                    'error':errorM
+                })
+            #one match
+            elif len(files) == 1 and files[0].lower() == searchquery:
+                title = files[0]
+                return displayEntry(request, title)
+            #multiple matches
+            else:
+                title = [filename for filename in files if searchquery == filename.lower()]
+
+                return render(request, "encyclopedia/search_results.html", {
+                    'results': files,
+                    'form': searchForm()
+                })
