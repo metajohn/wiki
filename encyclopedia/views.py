@@ -118,7 +118,8 @@ def search(request):
             if len(files) == 0:
                 errorM = (f'No results found for search \"{searchquery}\"')
                 return render(request, "encyclopedia/search_results.html", {
-                    'error':errorM
+                    'error':errorM,
+                    'searchForm': searchForm()
                 })
             #one match
             elif len(files) == 1 and files[0].lower() == searchquery:
@@ -130,5 +131,5 @@ def search(request):
 
                 return render(request, "encyclopedia/search_results.html", {
                     'results': files,
-                    'form': searchForm()
+                    'searchForm': searchForm()
                 })
