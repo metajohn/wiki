@@ -78,7 +78,7 @@ def new(request):
         form = newEntry(request.POST)
         if form.is_valid():
             title = form.cleaned_data["f_entry_title"]
-            textarea = form.cleaned_data["f_entry_text"]
+            textarea = "#" + title + '\n' + form.cleaned_data["f_entry_text"]
             entry_list = util.list_entries()
             if title in entry_list:
                 return error(request)
